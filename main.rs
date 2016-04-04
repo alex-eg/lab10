@@ -1,32 +1,40 @@
 use std::fmt::Display;
 use std::cmp::Ord;
+use std::borrow::BorrowMut;
+use std::borrow::Borrow;
 
-enum Tree<'a, T: 'a + Display + Ord>
+enum Tree<T: Display + Ord>
 {
     Null,
     Node {
         data: T,
-        left: Box<Tree<'a, T>>,
-        right: Box<Tree<'a, T>>
+        left: Box<Tree<T>>,
+        right: Box<Tree<T>>
     }
 }
 
-impl<'a, T: 'a + Display + Ord> Tree<'a, T> {
+impl<T> Tree<T>
+    where T : Display + Ord {
+
     fn _print(&self, prefix: String, is_tail: bool)
     {
         match self {
-            &Tree::Node { ref data, left, right } => {
-                println!("{}{}{}", prefix.clone(), if is_tail { "`-- " } else { "+-- " }, data.to_string());
-                match right {
-                     &Tree::Node { .. } => {
-                         right._print(prefix.clone() + if !is_tail { "|   " } else { "    " },
-                                      match left { &Tree::Null => true, _ => false });
-                     }
+            &Tree::Node { ref data, ref left, ref right } => {
+                println!("{}{}{}", prefix.clone(),
+                         if is_tail { "└ " } else { "├ " }, data.to_string());
+                match right.borrow() {
+                    &Tree::Node { .. } => {
+                        right._print(prefix.clone() +
+                                     if !is_tail { "│ " } else { "  " },
+                                     match left.borrow() {
+                                         &Tree::Null => true, _ => false });
+                    }
                     _ => ()
                 }
-                match left {
-                    ref left @ &Tree::Node { .. }  => {
-                        left._print(prefix.clone() + if !is_tail { "|   " } else { "    " },
+                match left.borrow() {
+                    &Tree::Node { .. }  => {
+                        left._print(prefix.clone() +
+                                    if !is_tail { "│ " } else { "  " },
                                     true);
                     }
                     _ => ()
@@ -36,27 +44,41 @@ impl<'a, T: 'a + Display + Ord> Tree<'a, T> {
         }
     }
 
+    fn new_empty() -> Tree<T>
+    {
+        Tree::Null
+    }
+
+    fn new_filled(data: T) -> Tree<T>
+    {
+        Tree::Node { data: data,
+                     left: Box::new(Tree::Null),
+                     right: Box::new(Tree::Null) }
+    }
 
     fn print(&self)
     {
         match self {
             &Tree::Null => println!("Null"),
-            &Tree::Node { ref data, .. } => {
-                println!("{}", data);
+            &Tree::Node { .. } => {
                 self._print("".to_string(), true);
             }
         }
     }
 
-    fn put(&mut self, new_data: T)
+    fn put(&mut self, new_data: T) -> ()
     {
         match self {
-            &mut Tree::Null => *self = Tree::Node{ data: new_data, left: Tree::Null, right: Tree::Null },
-            &mut Tree::Node { ref data, ref left, ref right } => {
+            &mut Tree::Null => *self = Tree::new_filled(new_data),
+            &mut Tree::Node { ref data,
+                              ref mut left,
+                              ref mut right } => {
                 if new_data > *data {
-                    right.put(new_data);
+                    let ref mut unboxed: Tree<T> = *right.borrow_mut();
+                    unboxed.put(new_data);
                 } else {
-                    left.put(new_data);
+                    let ref mut unboxed: Tree<T> = *left.borrow_mut();
+                    unboxed.put(new_data);
                 }
             }
         }
@@ -65,13 +87,17 @@ impl<'a, T: 'a + Display + Ord> Tree<'a, T> {
 
 fn main()
 {
-    let t : Tree<u32> = Tree::Null;
-    let g = Tree::Node { data: 34, left: &Tree::Null, right: &Tree::Null };
-/*    t.put(3);
+    let mut t : Tree<u32> = Tree::new_empty();
+    let g = Tree::new_filled(34);
+    t.print();
+    println!("");
+    t.put(3);
     t.put(5);
     t.put(7);
+    t.put(6);
     t.put(10);
-    t.put(1); */
+    t.put(1);
     t.print();
+    println!("");
     g.print();
 }
