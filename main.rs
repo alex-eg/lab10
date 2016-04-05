@@ -1,9 +1,12 @@
 use std::fmt::Display;
+use std::fmt::Formatter;
+use std::fmt::Result;
+
 use std::cmp::Ord;
 use std::option::Option;
 use std::clone::Clone;
 
-enum Tree<T: Display + Ord + Clone>
+enum Tree<T: Clone>
 {
     Null,
     Node {
@@ -14,33 +17,35 @@ enum Tree<T: Display + Ord + Clone>
 }
 
 impl<T> Tree<T>
-    where T : Display + Ord + Clone {
+    where T : Ord + Clone + Display {
 
-    fn _print(&self, prefix: String, is_tail: bool)
+    fn _print(&self, prefix: String, is_tail: bool, f: &mut Formatter) -> Result
     {
         match self {
             &Tree::Node { ref data, ref left, ref right } => {
-                println!("{}{}{}", prefix.clone(),
-                         if is_tail { "└ " } else { "├ " }, data.to_string());
+                let _ = writeln!(f, "{}{}{}", prefix.clone(),
+                                 if is_tail { "└ " } else { "├ " }, data.to_string());
                 match **right {
                     Tree::Node { .. } => {
-                        right._print(prefix.clone() +
-                                     if !is_tail { "│ " } else { "  " },
-                                     match **left {
-                                         Tree::Null => true, _ => false });
-                    }
+                        let _ = right._print(prefix.clone() +
+                                             if !is_tail { "│ " } else { "  " },
+                                             match **left {
+                                                 Tree::Null => true, _ => false },
+                                             f);
+                    },
                     _ => ()
-                }
+                };
                 match **left {
                     Tree::Node { .. }  => {
                         left._print(prefix.clone() +
                                     if !is_tail { "│ " } else { "  " },
-                                    true);
+                                    true,
+                                    f)
                     }
-                    _ => ()
+                    _ => Ok(())
                 }
             }
-            _ => ()
+            _ => Ok(())
         }
     }
 
@@ -56,16 +61,6 @@ impl<T> Tree<T>
                      right: Box::new(Tree::Null) }
     }
 
-    fn print(&self)
-    {
-        match self {
-            &Tree::Null => println!("Null"),
-            &Tree::Node { .. } => {
-                self._print("".to_string(), true);
-            }
-        }
-    }
-
     fn put(&mut self, new_data: T) -> ()
     {
         match self {
@@ -73,7 +68,7 @@ impl<T> Tree<T>
             &mut Tree::Node { ref data,
                               ref mut left,
                               ref mut right } => {
-                if new_data > *data {
+                if new_data >= *data {
                     right.put(new_data);
                 } else {
                     left.put(new_data);
@@ -96,36 +91,45 @@ impl<T> Tree<T>
     }
 }
 
+impl<T> Display for Tree<T>
+    where T : Display + Ord + Clone {
+
+    fn fmt(&self, f: &mut Formatter) -> Result
+    {
+        match self {
+            &Tree::Null => write!(f, "Null"),
+            &Tree::Node { .. } => {
+                self._print("".to_string(), true, f)
+            }
+        }
+    }
+}
+
 fn main()
 {
     let mut t : Tree<u32> = Tree::new_empty();
     let g = Tree::new_filled(34);
 
-    t.print();
+    println!("{}", t);
 
     match t.find_max() {
-        None => println!("Max in t is None"),
-        Some(val) => println!("Max in t: {}", val)
+        None => println!("Max in {} is None", t),
+        Some(val) => println!("Max in {}: {}", t, val)
     }
 
-    println!("");
     t.put(3);
     t.put(5);
     t.put(7);
     t.put(6);
     t.put(10);
     t.put(1);
-    t.print();
-    println!("");
-    g.print();
+    t.put(3);
+    println!("{}", t);
+    println!("{}", g);
 
-    match t.find_max() {
-        None => println!("Max in t is None"),
-        Some(val) => println!("Max in t: {}", val)
-    }
-
-    match g.find_max() {
-        None => println!("Max in g is None"),
-        Some(val) => println!("Max in t: {}", val)
+    if let Some(val) = t.find_max() {
+        println!("Max in t: {}", val);
+    } else {
+        println!("Max in t is None");
     }
 }
