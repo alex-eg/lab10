@@ -1,7 +1,5 @@
 use std::fmt::Display;
 use std::cmp::Ord;
-use std::borrow::BorrowMut;
-use std::borrow::Borrow;
 use std::option::Option;
 use std::clone::Clone;
 
@@ -24,17 +22,17 @@ impl<T> Tree<T>
             &Tree::Node { ref data, ref left, ref right } => {
                 println!("{}{}{}", prefix.clone(),
                          if is_tail { "└ " } else { "├ " }, data.to_string());
-                match right.borrow() {
-                    &Tree::Node { .. } => {
+                match **right {
+                    Tree::Node { .. } => {
                         right._print(prefix.clone() +
                                      if !is_tail { "│ " } else { "  " },
-                                     match left.borrow() {
-                                         &Tree::Null => true, _ => false });
+                                     match **left {
+                                         Tree::Null => true, _ => false });
                     }
                     _ => ()
                 }
-                match left.borrow() {
-                    &Tree::Node { .. }  => {
+                match **left {
+                    Tree::Node { .. }  => {
                         left._print(prefix.clone() +
                                     if !is_tail { "│ " } else { "  " },
                                     true);
@@ -76,11 +74,9 @@ impl<T> Tree<T>
                               ref mut left,
                               ref mut right } => {
                 if new_data > *data {
-                    let ref mut unboxed: Tree<T> = *right.borrow_mut();
-                    unboxed.put(new_data);
+                    right.put(new_data);
                 } else {
-                    let ref mut unboxed: Tree<T> = *left.borrow_mut();
-                    unboxed.put(new_data);
+                    left.put(new_data);
                 }
             }
         }
@@ -91,9 +87,9 @@ impl<T> Tree<T>
         match self {
             &Tree::Null => None,
             &Tree::Node { ref data, ref right, .. } => {
-                match right.borrow() {
-                    &Tree::Null => Some(data.clone()),
-                    &Tree::Node { .. }=> { let r: &Tree<T> = right.borrow(); r.find_max() }
+                match **right {
+                    Tree::Null => Some(data.clone()),
+                    Tree::Node { .. }=> { right.find_max() }
                 }
             }
         }
