@@ -2,8 +2,10 @@ use std::fmt::Display;
 use std::cmp::Ord;
 use std::borrow::BorrowMut;
 use std::borrow::Borrow;
+use std::option::Option;
+use std::clone::Clone;
 
-enum Tree<T: Display + Ord>
+enum Tree<T: Display + Ord + Clone>
 {
     Null,
     Node {
@@ -14,7 +16,7 @@ enum Tree<T: Display + Ord>
 }
 
 impl<T> Tree<T>
-    where T : Display + Ord {
+    where T : Display + Ord + Clone {
 
     fn _print(&self, prefix: String, is_tail: bool)
     {
@@ -83,13 +85,33 @@ impl<T> Tree<T>
             }
         }
     }
+
+    fn find_max(&self) -> Option<T>
+    {
+        match self {
+            &Tree::Null => None,
+            &Tree::Node { ref data, ref right, .. } => {
+                match right.borrow() {
+                    &Tree::Null => Some(data.clone()),
+                    &Tree::Node { .. }=> { let r: &Tree<T> = right.borrow(); r.find_max() }
+                }
+            }
+        }
+    }
 }
 
 fn main()
 {
     let mut t : Tree<u32> = Tree::new_empty();
     let g = Tree::new_filled(34);
+
     t.print();
+
+    match t.find_max() {
+        None => println!("Max in t is None"),
+        Some(val) => println!("Max in t: {}", val)
+    }
+
     println!("");
     t.put(3);
     t.put(5);
@@ -100,4 +122,14 @@ fn main()
     t.print();
     println!("");
     g.print();
+
+    match t.find_max() {
+        None => println!("Max in t is None"),
+        Some(val) => println!("Max in t: {}", val)
+    }
+
+    match g.find_max() {
+        None => println!("Max in g is None"),
+        Some(val) => println!("Max in t: {}", val)
+    }
 }
