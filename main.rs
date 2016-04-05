@@ -6,7 +6,7 @@ use std::cmp::Ord;
 use std::option::Option;
 use std::clone::Clone;
 
-enum Tree<T: Clone>
+enum Tree<T>
 {
     Null,
     Node {
@@ -16,8 +16,23 @@ enum Tree<T: Clone>
     }
 }
 
-impl<T> Tree<T>
-    where T : Ord + Clone + Display {
+
+impl<T> Tree<T> {
+
+    fn new_empty() -> Tree<T>
+    {
+        Tree::Null
+    }
+
+    fn new_filled(data: T) -> Tree<T>
+    {
+        Tree::Node { data: data,
+                     left: Box::new(Tree::Null),
+                     right: Box::new(Tree::Null) }
+    }
+}
+
+impl<T: Display> Tree<T> {
 
     fn _print(&self, prefix: String, is_tail: bool, f: &mut Formatter) -> Result
     {
@@ -48,18 +63,25 @@ impl<T> Tree<T>
             _ => Ok(())
         }
     }
+}
 
-    fn new_empty() -> Tree<T>
-    {
-        Tree::Null
-    }
+impl<T: Clone> Tree<T> {
 
-    fn new_filled(data: T) -> Tree<T>
+    fn find_max(&self) -> Option<T>
     {
-        Tree::Node { data: data,
-                     left: Box::new(Tree::Null),
-                     right: Box::new(Tree::Null) }
+        match self {
+            &Tree::Null => None,
+            &Tree::Node { ref data, ref right, .. } => {
+                match **right {
+                    Tree::Null => Some(data.clone()),
+                    Tree::Node { .. }=> { right.find_max() }
+                }
+            }
+        }
     }
+}
+
+impl<T: Ord> Tree<T> {
 
     fn put(&mut self, new_data: T) -> ()
     {
@@ -76,23 +98,9 @@ impl<T> Tree<T>
             }
         }
     }
-
-    fn find_max(&self) -> Option<T>
-    {
-        match self {
-            &Tree::Null => None,
-            &Tree::Node { ref data, ref right, .. } => {
-                match **right {
-                    Tree::Null => Some(data.clone()),
-                    Tree::Node { .. }=> { right.find_max() }
-                }
-            }
-        }
-    }
 }
 
-impl<T> Display for Tree<T>
-    where T : Display + Ord + Clone {
+impl<T: Display> Display for Tree<T> {
 
     fn fmt(&self, f: &mut Formatter) -> Result
     {
