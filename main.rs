@@ -31,30 +31,33 @@ impl<T> Tree<T> {
 
 impl<T: Display> Tree<T> {
 
-    fn _print(&self, prefix: String, is_tail: bool, f: &mut Formatter)
+    fn _print(&self, prefix: String, is_tail: bool, f: &mut Formatter, is_first: bool)
               -> Result {
         match self {
             &Tree::Node { ref data, ref left, ref right } => {
                 let _ = writeln!(f, "{}{}{}", prefix.clone(),
-                                 if is_tail { "└ " } else { "├ " },
+                                 if is_first { "" } else if is_tail { "└ " } else { "├ " },
                                  data.to_string());
                 match **right {
                     Tree::Node { .. } => {
                         let _ = right._print(prefix.clone() +
+                                             if is_first { "" } else
                                              if !is_tail { "│ " } else { "  " },
                                              match **left {
                                                  Tree::Null => true,
-                                                 _ => false
-                                             }, f);
+                                                 _ => false },
+                                             f, false);
                     },
                     _ => ()
                 };
                 match **left {
                     Tree::Node { .. }  => {
                         left._print(prefix.clone() +
-                                    if !is_tail { "│ " } else { "  " },
+                                    if is_first { "" } else
+                                    if is_tail { "  " } else { "│ " },
                                     true,
-                                    f)
+                                    f,
+                                    false)
                     }
                     _ => Ok(())
                 }
@@ -128,7 +131,7 @@ impl<T: Display> Display for Tree<T> {
         match self {
             &Tree::Null => write!(f, "Null"),
             &Tree::Node { .. } => {
-                self._print("".to_string(), true, f)
+                self._print("".to_string(), true, f, true)
             }
         }
     }
