@@ -17,7 +17,6 @@ enum Tree<T> {
 
 
 impl<T> Tree<T> {
-
     fn new_empty() -> Tree<T> {
         Tree::Null
     }
@@ -30,7 +29,6 @@ impl<T> Tree<T> {
 }
 
 impl<T: Display> Tree<T> {
-
     fn _print(&self, prefix: String, is_tail: bool, f: &mut Formatter, is_first: bool)
               -> Result {
         match self {
@@ -68,7 +66,6 @@ impl<T: Display> Tree<T> {
 }
 
 impl<T: Clone> Tree<T> {
-
     fn find_max(&self) -> Option<T> {
         match self {
             &Tree::Null => None,
@@ -83,7 +80,6 @@ impl<T: Clone> Tree<T> {
 }
 
 impl<T: PartialOrd> Tree<T> {
-
     fn put(&mut self, new_data: T) -> &mut Tree<T> {
         match self {
             &mut Tree::Null => *self = Tree::new_filled(new_data),
@@ -127,7 +123,6 @@ impl <T: PartialOrd> PartialOrd for Tree<T> {
 }
 
 impl<T: Display> Display for Tree<T> {
-
     fn fmt(&self, f: &mut Formatter) -> Result {
         match self {
             &Tree::Null => write!(f, "Null"),
