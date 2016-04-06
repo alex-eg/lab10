@@ -2,7 +2,7 @@ use std::fmt::Display;
 use std::fmt::Formatter;
 use std::fmt::Result;
 
-use std::cmp::Ord;
+use std::cmp::Ordering;
 use std::option::Option;
 use std::clone::Clone;
 
@@ -79,7 +79,7 @@ impl<T: Clone> Tree<T> {
     }
 }
 
-impl<T: Ord> Tree<T> {
+impl<T: PartialOrd> Tree<T> {
 
     fn put(&mut self, new_data: T) -> () {
         match self {
@@ -92,6 +92,31 @@ impl<T: Ord> Tree<T> {
                 } else {
                     left.put(new_data);
                 }
+            }
+        }
+    }
+}
+
+impl <T: PartialEq> PartialEq for Tree<T> {
+    fn eq(&self, other: &Tree<T>) -> bool {
+        match self {
+            &Tree::Null => match other { &Tree::Null => true, _ => false },
+            &Tree::Node { ref data, .. } => match other {
+                &Tree::Node { data: ref o_data, .. } => *data == *o_data,
+                _ => false
+            }
+        }
+    }
+}
+
+impl <T: PartialOrd> PartialOrd for Tree<T> {
+    fn partial_cmp(&self, other: &Tree<T>) -> Option<Ordering> {
+        match self {
+            &Tree::Null => match other { &Tree::Null => Some(Ordering::Equal),
+                                          _ => Some(Ordering::Less) },
+            &Tree::Node { ref data, .. } => match other {
+                &Tree::Node { data: ref o_data, .. } => data.partial_cmp(o_data),
+                _ => Some(Ordering::Greater)
             }
         }
     }
@@ -135,4 +160,20 @@ fn main() {
     } else {
         println!("Max in t is None");
     }
+
+    let mut t1 = Tree::new_filled(7.3);
+    t1.put(2.3);
+    t1.put(2.1);
+    t1.put(5.0);
+    t1.put(8.0);
+    t1.put(6.0);
+
+    let mut t2 = Tree::new_filled(2.2);
+    t2.put(1.0);
+    t2.put(3.4);
+
+    let mut tt: Tree<Tree<f32>> = Tree::new_empty();
+    tt.put(t2);
+    tt.put(t1);
+    println!("{}", tt);
 }
