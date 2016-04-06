@@ -84,7 +84,7 @@ impl<T: Clone> Tree<T> {
 
 impl<T: PartialOrd> Tree<T> {
 
-    fn put(&mut self, new_data: T) -> () {
+    fn put(&mut self, new_data: T) -> &mut Tree<T> {
         match self {
             &mut Tree::Null => *self = Tree::new_filled(new_data),
             &mut Tree::Node { ref data,
@@ -97,6 +97,7 @@ impl<T: PartialOrd> Tree<T> {
                 }
             }
         }
+        self
     }
 }
 
@@ -155,13 +156,7 @@ fn main() {
     print_opt!(t.find_max(),
                "Max in t: {}",
                "Max in t is None");
-    t.put(3);
-    t.put(5);
-    t.put(7);
-    t.put(6);
-    t.put(10);
-    t.put(1);
-    t.put(3);
+    t.put(3).put(5).put(7).put(6).put(10).put(1).put(3);
     println!("{}", t);
     println!("{}", g);
 
@@ -170,18 +165,12 @@ fn main() {
                "Max in t is None");
 
     let mut t1 = Tree::new_filled(7.3);
-    t1.put(2.3);
-    t1.put(2.1);
-    t1.put(5.0);
-    t1.put(8.0);
-    t1.put(6.0);
+    t1.put(2.3).put(2.1).put(2.1).put(5.0).put(8.0).put(6.0);
 
     let mut t2 = Tree::new_filled(2.2);
-    t2.put(1.0);
-    t2.put(3.4);
+    t2.put(1.0).put(3.4);
 
     let mut tt: Tree<Tree<f32>> = Tree::new_empty();
-    tt.put(t2);
-    tt.put(t1);
+    tt.put(t2).put(t1);
     println!("{}", tt);
 }
