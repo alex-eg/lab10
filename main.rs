@@ -137,17 +137,24 @@ impl<T: Display> Display for Tree<T> {
     }
 }
 
+macro_rules! print_opt {
+    ($v:expr, $ok:expr, $fail:expr) => {{
+        if let Some(val) = { $v } {
+            println!($ok, val);
+        } else {
+            println!($fail);
+        }
+    }}
+}
+
 fn main() {
     let mut t : Tree<u32> = Tree::new_empty();
     let g = Tree::new_filled(34);
 
     println!("{}", t);
-
-    match t.find_max() {
-        None => println!("Max in {} is None", t),
-        Some(val) => println!("Max in {}: {}", t, val)
-    }
-
+    print_opt!(t.find_max(),
+               "Max in t: {}",
+               "Max in t is None");
     t.put(3);
     t.put(5);
     t.put(7);
@@ -158,11 +165,9 @@ fn main() {
     println!("{}", t);
     println!("{}", g);
 
-    if let Some(val) = t.find_max() {
-        println!("Max in t: {}", val);
-    } else {
-        println!("Max in t is None");
-    }
+    print_opt!(t.find_max(),
+               "Max in t: {}",
+               "Max in t is None");
 
     let mut t1 = Tree::new_filled(7.3);
     t1.put(2.3);
