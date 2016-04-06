@@ -6,8 +6,7 @@ use std::cmp::Ord;
 use std::option::Option;
 use std::clone::Clone;
 
-enum Tree<T>
-{
+enum Tree<T> {
     Null,
     Node {
         data: T,
@@ -19,13 +18,11 @@ enum Tree<T>
 
 impl<T> Tree<T> {
 
-    fn new_empty() -> Tree<T>
-    {
+    fn new_empty() -> Tree<T> {
         Tree::Null
     }
 
-    fn new_filled(data: T) -> Tree<T>
-    {
+    fn new_filled(data: T) -> Tree<T> {
         Tree::Node { data: data,
                      left: Box::new(Tree::Null),
                      right: Box::new(Tree::Null) }
@@ -34,19 +31,21 @@ impl<T> Tree<T> {
 
 impl<T: Display> Tree<T> {
 
-    fn _print(&self, prefix: String, is_tail: bool, f: &mut Formatter) -> Result
-    {
+    fn _print(&self, prefix: String, is_tail: bool, f: &mut Formatter)
+              -> Result {
         match self {
             &Tree::Node { ref data, ref left, ref right } => {
                 let _ = writeln!(f, "{}{}{}", prefix.clone(),
-                                 if is_tail { "└ " } else { "├ " }, data.to_string());
+                                 if is_tail { "└ " } else { "├ " },
+                                 data.to_string());
                 match **right {
                     Tree::Node { .. } => {
                         let _ = right._print(prefix.clone() +
                                              if !is_tail { "│ " } else { "  " },
                                              match **left {
-                                                 Tree::Null => true, _ => false },
-                                             f);
+                                                 Tree::Null => true,
+                                                 _ => false
+                                             }, f);
                     },
                     _ => ()
                 };
@@ -67,8 +66,7 @@ impl<T: Display> Tree<T> {
 
 impl<T: Clone> Tree<T> {
 
-    fn find_max(&self) -> Option<T>
-    {
+    fn find_max(&self) -> Option<T> {
         match self {
             &Tree::Null => None,
             &Tree::Node { ref data, ref right, .. } => {
@@ -83,8 +81,7 @@ impl<T: Clone> Tree<T> {
 
 impl<T: Ord> Tree<T> {
 
-    fn put(&mut self, new_data: T) -> ()
-    {
+    fn put(&mut self, new_data: T) -> () {
         match self {
             &mut Tree::Null => *self = Tree::new_filled(new_data),
             &mut Tree::Node { ref data,
@@ -102,8 +99,7 @@ impl<T: Ord> Tree<T> {
 
 impl<T: Display> Display for Tree<T> {
 
-    fn fmt(&self, f: &mut Formatter) -> Result
-    {
+    fn fmt(&self, f: &mut Formatter) -> Result {
         match self {
             &Tree::Null => write!(f, "Null"),
             &Tree::Node { .. } => {
@@ -113,8 +109,7 @@ impl<T: Display> Display for Tree<T> {
     }
 }
 
-fn main()
-{
+fn main() {
     let mut t : Tree<u32> = Tree::new_empty();
     let g = Tree::new_filled(34);
 
